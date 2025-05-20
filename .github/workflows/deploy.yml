@@ -1,0 +1,41 @@
+name: "Deploy to AWS"
+
+on: workflow_dispatch
+
+jobs:
+    deploy:
+        runs-on: self-hosted
+        steps:
+            - name: "Setup python"
+              uses: actions/setup-python@v5
+              with:
+                 python-version: '3.13'
+
+            - name: "Checkout code"
+              uses: actions/checkout@v4
+
+            - name: "Cache pip dependencies"
+              uses: actions/cache@v3
+              with:
+                path: ~/.cache/pip
+                key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+                restore-keys: ${{ runner.os }}-pip-
+
+            - name: "Install dependencies"
+              run: pip install -r requirements.txt
+
+            - name: "Setup SSH key"
+              run: |
+                mkdir -p ~/.ssh
+                echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/Diamond_Price_Prediction.pem
+                chmod 600 ~/.ssh/Diamond_Price_Prediction.pem
+
+            - name: "Deploy to EC2 and run Flask"
+              run: |
+                ssh -o StrictHostKeyChecking=no -i ~/.ssh/Diamond_Price_Prediction.pem ubuntu@3.110.191.255 << 'EOF'
+                cd /home/ubuntu/Diamond-Valuation-Model/src
+                source venv/bin/activate
+                nohup python application.py > app.log 2>&1 &
+                EOF
+
+
