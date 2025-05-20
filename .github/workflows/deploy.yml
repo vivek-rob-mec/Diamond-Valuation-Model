@@ -33,7 +33,7 @@ jobs:
             - name: "Deploy to EC2 and run Flask"
               run: |
                 ssh -o StrictHostKeyChecking=no -i ~/.ssh/Diamond_Price_Prediction.pem ubuntu@3.110.191.255 << 'EOF'
-                cd /home/ubuntu/Diamond-Valuation-Model/src
+                cd /home/ubuntu/Diamond-Valuation-Model/
                 source venv/bin/activate
                 nohup python application.py > app.log 2>&1 &
                 EOF
